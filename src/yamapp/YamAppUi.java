@@ -19,6 +19,18 @@ final class YamAppUi implements ActionListener {
         return String.valueOf(BigDecimal.valueOf(vol).divide(BigDecimal.TEN, BigDecimal.ROUND_DOWN).setScale(1, BigDecimal.ROUND_DOWN));
     }
 
+    public static void showOnScreen(final int screen, final JFrame frame) {
+        final GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice[] devices = env.getScreenDevices();
+        if (screen > -1 && screen < devices.length) {
+            frame.setLocation(devices[screen].getDefaultConfiguration().getBounds().x, 3200);
+        } else if (devices.length > 0) {
+            frame.setLocation(devices[0].getDefaultConfiguration().getBounds().x, frame.getY());
+        } else {
+            throw new RuntimeException("No Screens Found");
+        }
+    }
+
     public void drawUi() {
         for (UIManager.LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels()) {
             if ("Nimbus".equals(laf.getName())) {
@@ -42,10 +54,13 @@ final class YamAppUi implements ActionListener {
         panel.add(volumeSlider);
         panel.add(volText);
         panel.add(createMuteButton());
+        yamFrame.setUndecorated(true);
         yamFrame.getContentPane().add(panel, BorderLayout.CENTER);
         yamFrame.pack();
-        yamFrame.setLocationRelativeTo(null);
         yamFrame.setVisible(true);
+        yamFrame.setSize(800, 400);
+        yamFrame.setResizable(false);
+        showOnScreen(1, yamFrame);
     }
 
     @Override
@@ -59,7 +74,7 @@ final class YamAppUi implements ActionListener {
         final JLabel volText = new JLabel(String.valueOf(prettifyVolume(volume)), SwingConstants.CENTER);
         volText.setBackground(Color.darkGray);
         volText.setForeground(Color.RED);
-        volText.setFont(new Font("monospaced", Font.BOLD, 30));
+        volText.setFont(new Font("monospaced", Font.BOLD, 56));
         return volText;
     }
 
@@ -67,7 +82,7 @@ final class YamAppUi implements ActionListener {
         final JButton button = new JButton("MUTE");
         button.setBackground(Color.BLACK);
         button.setForeground(Color.RED);
-        button.setFont(new Font("Helvetica",Font.BOLD,20));
+        button.setFont(new Font("Helvetica", Font.BOLD, 40));
         button.setActionCommand("mute");
         button.addActionListener(this);
         return button;
