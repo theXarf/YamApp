@@ -96,11 +96,11 @@ final class YamAppUi implements ActionListener {
         sliderDefaults.put("Slider:SliderThumb.backgroundPainter", new Painter<JComponent>() {
             public void paint(Graphics2D g, JComponent c, int w, int h) {
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g.setStroke(new BasicStroke(2f));
+                g.setStroke(new BasicStroke(3f));
                 g.setColor(Color.RED);
-                g.fillOval(1, 1, w - 3, h - 3);
+                g.fillOval(1, 1, w + 5, h + 5);
                 g.setColor(Color.WHITE);
-                g.drawOval(1, 1, w - 3, h - 3);
+                g.drawOval(1, 1, w + 5, h + 5);
             }
         });
         sliderDefaults.put("Slider:SliderTrack.backgroundPainter", new Painter<JComponent>() {
