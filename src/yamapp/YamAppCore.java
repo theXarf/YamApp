@@ -1,23 +1,20 @@
 package yamapp;
 
-import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.stream.StreamSource;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 
 public class YamAppCore {
-    private static String ZONE = "Main_Zone";
     private static final String YAM_URL = "http://192.168.1.101/YamahaRemoteControl/ctrl";
+    private static String ZONE = "Main_Zone";
     private DocumentBuilderFactory builderFactory;
     private DocumentBuilder documentBuilder;
 
@@ -30,13 +27,54 @@ public class YamAppCore {
         }
     }
 
+    private static String sendXmlToReceiver(final String xml) {
+        try {
+            pnt("Outgoing XML", xml);
+            final HttpClient client = HttpClients.createDefault();
+            final HttpPost post = new HttpPost(YAM_URL);
+            post.setEntity(new StringEntity(xml));
+
+            final HttpResponse response = client.execute(post);
+            pnt("Sending 'POST' request", "");
+            pnt("Post parameters", post.getEntity().toString());
+            pnt("Response Code",
+                    String.valueOf(response.getStatusLine().getStatusCode()));
+            pnt("Response Msg",
+                    response.getStatusLine().getReasonPhrase());
+
+            final BufferedReader rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            final StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+
+            pnt("Result", result.toString());
+            return result.toString();
+        } catch (final Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    private static void pnt(final String t, final String s) {
+        if (t != null && t.length() > 0) {
+            System.out.println(t + ": " + s);
+        } else {
+            System.out.println(s);
+        }
+    }
+
     public void toggleMute() {
         final String info = getInfo();
         final String startOfVal = "<Mute>";
         final String endOfVal = "</Mute>";
         final int start = info.indexOf(startOfVal);
         final int end = info.indexOf(endOfVal, start);
-        final boolean muted = Boolean.valueOf(info.substring(start + startOfVal.length(), end));
+        final String muteStr = info.substring(start + startOfVal.length(), end);
+        final boolean muted = muteStr.equalsIgnoreCase("On");
         if(muted) {
             muteOff();
         } else {
@@ -90,45 +128,5 @@ public class YamAppCore {
     private String getInfo() {
         final String command = "<YAMAHA_AV cmd=\"GET\"><" + ZONE + "><Basic_Status>GetParam</Basic_Status></" + ZONE + "></YAMAHA_AV>";
         return sendXmlToReceiver(command);
-    }
-
-    private static String sendXmlToReceiver(final String xml) {
-        try {
-         //   pnt("Outgoing XML", xml);
-            final HttpClient client = HttpClients.createDefault();
-            final HttpPost post = new HttpPost(YAM_URL);
-            post.setEntity(new StringEntity(xml));
-
-            final HttpResponse response = client.execute(post);
-        //    pnt("Sending 'POST' request", "");
-       //     pnt("Post parameters", post.getEntity().toString());
-        //    pnt("Response Code",
-        //            String.valueOf(response.getStatusLine().getStatusCode()));
-       //     pnt("Response Msg",
-       //             response.getStatusLine().getReasonPhrase());
-
-            final BufferedReader rd = new BufferedReader(
-                    new InputStreamReader(response.getEntity().getContent()));
-
-            final StringBuilder result = new StringBuilder();
-            String line = "";
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
-            }
-
-        //    pnt("Result", result.toString());
-            return result.toString();
-        } catch (final Exception ex) {
-            ex.printStackTrace();
-        }
-        return null;
-    }
-
-    private static void pnt(final String t, final String s) {
-        if (t != null && t.length() > 0) {
-            System.out.println(t + ": " + s);
-        } else {
-            System.out.println(s);
-        }
     }
 }
