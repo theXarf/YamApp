@@ -15,6 +15,10 @@ final class YamAppUi implements ActionListener {
         this.core = core;
     }
 
+    private static String prettifyVolume(final int vol) {
+        return String.valueOf(BigDecimal.valueOf(vol).divide(BigDecimal.TEN, BigDecimal.ROUND_DOWN).setScale(1, BigDecimal.ROUND_DOWN));
+    }
+
     public void drawUi() {
         for (UIManager.LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels()) {
             if ("Nimbus".equals(laf.getName())) {
@@ -47,12 +51,8 @@ final class YamAppUi implements ActionListener {
     @Override
     public void actionPerformed(final ActionEvent e) {
         if (e.getActionCommand().equals("mute")) {
-            core.toggleMute();
+            final boolean success = core.toggleMute();
         }
-    }
-
-    private static String prettifyVolume(final int vol) {
-        return String.valueOf(BigDecimal.valueOf(vol).divide(BigDecimal.TEN, BigDecimal.ROUND_DOWN).setScale(1, BigDecimal.ROUND_DOWN));
     }
 
     private JLabel createVolumeReadout(final int volume) {
@@ -119,7 +119,7 @@ final class YamAppUi implements ActionListener {
         public void stateChanged(final ChangeEvent e) {
             final int vol = slider.getValue();
             if (!slider.getValueIsAdjusting()) {
-                core.setVolumeTo(vol);
+                final boolean success = core.setVolumeTo(vol);
             }
             volText.setText(prettifyVolume(vol));
         }

@@ -29,18 +29,18 @@ public class YamAppCore {
 
     private static String sendXmlToReceiver(final String xml) {
         try {
-            pnt("Outgoing XML", xml);
+            //pnt("Outgoing XML", xml);
             final HttpClient client = HttpClients.createDefault();
             final HttpPost post = new HttpPost(YAM_URL);
             post.setEntity(new StringEntity(xml));
 
             final HttpResponse response = client.execute(post);
-            pnt("Sending 'POST' request", "");
-            pnt("Post parameters", post.getEntity().toString());
-            pnt("Response Code",
-                    String.valueOf(response.getStatusLine().getStatusCode()));
-            pnt("Response Msg",
-                    response.getStatusLine().getReasonPhrase());
+            //pnt("Sending 'POST' request", "");
+            //pnt("Post parameters", post.getEntity().toString());
+            //pnt("Response Code",
+            //        String.valueOf(response.getStatusLine().getStatusCode()));
+            //pnt("Response Msg",
+            //        response.getStatusLine().getReasonPhrase());
 
             final BufferedReader rd = new BufferedReader(
                     new InputStreamReader(response.getEntity().getContent()));
@@ -51,7 +51,7 @@ public class YamAppCore {
                 result.append(line);
             }
 
-            pnt("Result", result.toString());
+            //pnt("Result", result.toString());
             return result.toString();
         } catch (final Exception ex) {
             ex.printStackTrace();
@@ -67,7 +67,7 @@ public class YamAppCore {
         }
     }
 
-    public void toggleMute() {
+    public boolean toggleMute() {
         final String info = getInfo();
         final String startOfVal = "<Mute>";
         final String endOfVal = "</Mute>";
@@ -76,28 +76,28 @@ public class YamAppCore {
         final String muteStr = info.substring(start + startOfVal.length(), end);
         final boolean muted = muteStr.equalsIgnoreCase("On");
         if(muted) {
-            muteOff();
+            return muteOff();
         } else {
-            muteOn();
+            return muteOn();
         }
     }
 
-    public void muteOn() {
+    public boolean muteOn() {
         final String command = "<YAMAHA_AV cmd=\"PUT\"><" + ZONE + "><Volume><Mute>On</Mute></Volume></" + ZONE + "></YAMAHA_AV>";
-        sendXmlToReceiver(command);
+        return null != sendXmlToReceiver(command);
     }
 
-    public void muteOff() {
+    public boolean muteOff() {
         final String command = "<YAMAHA_AV cmd=\"PUT\"><" + ZONE + "><Volume><Mute>Off</Mute></Volume></" + ZONE + "></YAMAHA_AV>";
-        sendXmlToReceiver(command);
+        return null != sendXmlToReceiver(command);
     }
 
-    public void setVolumeTo(final int lvl) {
+    public boolean setVolumeTo(final int lvl) {
         if (0 < lvl) { //refuse to go so loud!
-            return;
+            return false;
         }
         final String command = "<YAMAHA_AV cmd=\"PUT\"><" + ZONE + "><Volume><Lvl><Val>" + lvl + "</Val><Exp>1</Exp><Unit>dB</Unit></Lvl></Volume></" + ZONE + "></YAMAHA_AV>";
-        sendXmlToReceiver(command);
+        return null != sendXmlToReceiver(command);
     }
 
     public void volumeUp() {
