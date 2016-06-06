@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 
 final class YamAppUi implements ActionListener {
     private final YamAppCore core;
+    private JLabel readout;
+    private JSlider volSlider;
 
     public YamAppUi(final YamAppCore core) {
         this.core = core;
@@ -47,12 +49,12 @@ final class YamAppUi implements ActionListener {
         JPanel panel = new JPanel(new GridLayout(0, 1, 20, 20));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         panel.setBackground(Color.darkGray);
-        final int volume = core.getVolume();
 
-        final JLabel volText = createVolumeReadout(volume);
-        final JSlider volumeSlider = createVolumeSlider(volume, volText);
-        panel.add(volumeSlider);
-        panel.add(volText);
+        readout = createVolumeReadout();
+        volSlider = createVolumeSlider(readout);
+        setVolume(core.getVolume());
+        panel.add(volSlider);
+        panel.add(readout);
         panel.add(createMuteButton());
         yamFrame.setUndecorated(true);
         yamFrame.getContentPane().add(panel, BorderLayout.CENTER);
@@ -61,6 +63,9 @@ final class YamAppUi implements ActionListener {
         yamFrame.setSize(800, 400);
         yamFrame.setResizable(false);
         showOnScreen(1, yamFrame);
+        final VolumePoller poller = new VolumePoller(core);
+        final Thread pollThread = new Thread(poller);
+        pollThread.start();
     }
 
     @Override
@@ -70,26 +75,21 @@ final class YamAppUi implements ActionListener {
         }
     }
 
-    private JLabel createVolumeReadout(final int volume) {
-        final JLabel volText = new JLabel(String.valueOf(prettifyVolume(volume)), SwingConstants.CENTER);
+    private void setVolume(final int volume) {
+        readout.setText(String.valueOf(prettifyVolume(volume)));
+        volSlider.setValue(volume);
+    }
+
+    private JLabel createVolumeReadout() {
+        final JLabel volText = new JLabel("", SwingConstants.CENTER);
         volText.setBackground(Color.darkGray);
         volText.setForeground(Color.RED);
         volText.setFont(new Font("monospaced", Font.BOLD, 56));
         return volText;
     }
 
-    private JButton createMuteButton() {
-        final JButton button = new JButton("MUTE");
-        button.setBackground(Color.BLACK);
-        button.setForeground(Color.RED);
-        button.setFont(new Font("Helvetica", Font.BOLD, 40));
-        button.setActionCommand("mute");
-        button.addActionListener(this);
-        return button;
-    }
-
-    private JSlider createVolumeSlider(final int volume, final JLabel volText) {
-        final JSlider slider = new JSlider(-600, 0, volume);
+    private JSlider createVolumeSlider(final JLabel volText) {
+        final JSlider slider = new JSlider(-600, 0, -400);
         final UIDefaults sliderDefaults = new UIDefaults();
         sliderDefaults.put("Slider.thumbWidth", 20);
         sliderDefaults.put("Slider.thumbHeight", 20);
@@ -119,6 +119,16 @@ final class YamAppUi implements ActionListener {
         return slider;
     }
 
+    private JButton createMuteButton() {
+        final JButton button = new JButton("MUTE");
+        button.setBackground(Color.BLACK);
+        button.setForeground(Color.RED);
+        button.setFont(new Font("Helvetica", Font.BOLD, 40));
+        button.setActionCommand("mute");
+        button.addActionListener(this);
+        return button;
+    }
+
     private class VolumeListener implements ChangeListener {
         private final JSlider slider;
         private final JLabel volText;
@@ -137,6 +147,27 @@ final class YamAppUi implements ActionListener {
                 final boolean success = core.setVolumeTo(vol);
             }
             volText.setText(prettifyVolume(vol));
+        }
+    }
+
+    private class VolumePoller implements Runnable {
+        final YamAppCore core;
+
+        private VolumePoller(YamAppCore core) {
+            this.core = core;
+        }
+
+        @Override
+        public void run() {
+            try {
+                for ( ; ; ) {
+                    Thread.sleep(10000);
+                    setVolume(core.getVolume());
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 }
