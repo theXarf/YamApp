@@ -12,6 +12,7 @@ final class YamAppUi implements ActionListener {
     private final YamAppCore core;
     private JLabel readout;
     private JSlider volSlider;
+    private JFrame yamFrame;
 
     public YamAppUi(final YamAppCore core) {
         this.core = core;
@@ -43,7 +44,7 @@ final class YamAppUi implements ActionListener {
                 }
             }
         }
-        final JFrame yamFrame = new JFrame("Amp Volume");
+        yamFrame = new JFrame("Amp Volume");
         yamFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         yamFrame.getContentPane().setLayout(new BorderLayout());
         JPanel panel = new JPanel(new GridLayout(0, 1, 20, 20));
@@ -76,8 +77,10 @@ final class YamAppUi implements ActionListener {
     }
 
     private void setVolume(final int volume) {
-        readout.setText(String.valueOf(prettifyVolume(volume)));
+        final String volStr = prettifyVolume(volume);
+        readout.setText(String.valueOf(volStr));
         volSlider.setValue(volume);
+        yamFrame.setTitle("Amp Vol " + volStr);
     }
 
     private JLabel createVolumeReadout() {
@@ -116,6 +119,7 @@ final class YamAppUi implements ActionListener {
         slider.putClientProperty("Nimbus.Overrides", sliderDefaults);
         slider.putClientProperty("Nimbus.Overrides.InheritDefaults", false);
         slider.addChangeListener(new VolumeListener(slider, volText, core));
+        slider.setSnapToTicks(false);
         return slider;
     }
 
