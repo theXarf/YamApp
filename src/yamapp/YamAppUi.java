@@ -3,6 +3,8 @@ package yamapp;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.plaf.basic.BasicSliderUI;
+import javax.swing.plaf.metal.MetalSliderUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -116,6 +118,11 @@ final class YamAppUi implements ActionListener {
                 g.drawRoundRect(0, 6, w - 1, 8, 8, 8);
             }
         });
+        slider.setUI(new BasicSliderUI(slider) {
+            protected void scrollDueToClickInTrack(int direction) {
+                slider.setValue(this.valueForXPosition(slider.getMousePosition().x));
+            }
+        });
         slider.putClientProperty("Nimbus.Overrides", sliderDefaults);
         slider.putClientProperty("Nimbus.Overrides.InheritDefaults", false);
         slider.addChangeListener(new VolumeListener(slider, volText, core));
@@ -164,7 +171,7 @@ final class YamAppUi implements ActionListener {
         @Override
         public void run() {
             try {
-                for ( ; ; ) {
+                for (; ; ) {
                     Thread.sleep(10000);
                     setVolume(core.getVolume());
                 }
