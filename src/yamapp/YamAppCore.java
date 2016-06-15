@@ -93,24 +93,8 @@ public class YamAppCore {
     }
 
     public boolean setVolumeTo(final int lvl) {
-        if (0 < lvl) { //refuse to go so loud!
-            return false;
-        }
         final String command = "<YAMAHA_AV cmd=\"PUT\"><" + ZONE + "><Volume><Lvl><Val>" + lvl + "</Val><Exp>1</Exp><Unit>dB</Unit></Lvl></Volume></" + ZONE + "></YAMAHA_AV>";
         return null != sendXmlToReceiver(command);
-    }
-
-    public void volumeUp() {
-        adjustVolumeBy(10);
-    }
-
-    public void volumeDown() {
-        adjustVolumeBy(-10);
-    }
-
-    public void adjustVolumeBy(final int delta) {
-        final int currentVol = getVolume();
-        setVolumeTo(currentVol + delta);
     }
 
     public int getVolume() {

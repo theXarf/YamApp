@@ -3,8 +3,6 @@ package yamapp;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.plaf.basic.BasicSliderUI;
-import javax.swing.plaf.metal.MetalSliderUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,27 +44,33 @@ final class YamAppUi implements ActionListener {
                 }
             }
         }
+
         yamFrame = new JFrame("Amp Volume");
         yamFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         yamFrame.getContentPane().setLayout(new BorderLayout());
+        yamFrame.setUndecorated(true);
+
+        final VolumePoller poller = new VolumePoller(core);
+        readout = createVolumeReadout();
+        volSlider = createVolumeSlider(readout, poller);
+
+        setVolumeOnUi(core.getVolume());
+
         JPanel panel = new JPanel(new GridLayout(0, 1, 20, 20));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         panel.setBackground(Color.darkGray);
-
-        readout = createVolumeReadout();
-        volSlider = createVolumeSlider(readout);
-        setVolume(core.getVolume());
         panel.add(volSlider);
         panel.add(readout);
         panel.add(createMuteButton());
-        yamFrame.setUndecorated(true);
+
         yamFrame.getContentPane().add(panel, BorderLayout.CENTER);
         yamFrame.pack();
         yamFrame.setVisible(true);
         yamFrame.setSize(800, 400);
         yamFrame.setResizable(false);
+
         showOnScreen(1, yamFrame);
-        final VolumePoller poller = new VolumePoller(core);
+
         final Thread pollThread = new Thread(poller);
         pollThread.start();
     }
@@ -78,11 +82,11 @@ final class YamAppUi implements ActionListener {
         }
     }
 
-    private void setVolume(final int volume) {
+    private void setVolumeOnUi(final int volume) {
         final String volStr = prettifyVolume(volume);
         readout.setText(String.valueOf(volStr));
         volSlider.setValue(volume);
-        yamFrame.setTitle("Amp Vol " + volStr);
+        yamFrame.setTitle(volStr + " - Amp");
     }
 
     private JLabel createVolumeReadout() {
@@ -93,7 +97,7 @@ final class YamAppUi implements ActionListener {
         return volText;
     }
 
-    private JSlider createVolumeSlider(final JLabel volText) {
+    private JSlider createVolumeSlider(final JLabel volText, VolumePoller poller) {
         final JSlider slider = new JSlider(-600, 0, -400);
         final UIDefaults sliderDefaults = new UIDefaults();
         sliderDefaults.put("Slider.thumbWidth", 20);
@@ -118,15 +122,12 @@ final class YamAppUi implements ActionListener {
                 g.drawRoundRect(0, 6, w - 1, 8, 8, 8);
             }
         });
-        slider.setUI(new BasicSliderUI(slider) {
-            protected void scrollDueToClickInTrack(int direction) {
-                slider.setValue(this.valueForXPosition(slider.getMousePosition().x));
-            }
-        });
+
+        slider.setMajorTickSpacing(10);
+        slider.setSnapToTicks(true);
         slider.putClientProperty("Nimbus.Overrides", sliderDefaults);
         slider.putClientProperty("Nimbus.Overrides.InheritDefaults", false);
-        slider.addChangeListener(new VolumeListener(slider, volText, core));
-        slider.setSnapToTicks(false);
+        slider.addChangeListener(new VolumeListener(slider, volText, core, poller));
         return slider;
     }
 
@@ -144,25 +145,29 @@ final class YamAppUi implements ActionListener {
         private final JSlider slider;
         private final JLabel volText;
         private final YamAppCore core;
+        private final VolumePoller poller;
 
-        VolumeListener(final JSlider slider, JLabel volText, final YamAppCore core) {
+        VolumeListener(final JSlider slider, JLabel volText, final YamAppCore core, final VolumePoller poller) {
             this.slider = slider;
             this.volText = volText;
             this.core = core;
+            this.poller = poller;
         }
 
         @Override
         public void stateChanged(final ChangeEvent e) {
-            final int vol = slider.getValue();
+            poller.resetSecondsLeft();
             if (!slider.getValueIsAdjusting()) {
+                final int vol = slider.getValue();
                 final boolean success = core.setVolumeTo(vol);
+                setVolumeOnUi(vol);
             }
-            volText.setText(prettifyVolume(vol));
         }
     }
 
     private class VolumePoller implements Runnable {
         final YamAppCore core;
+        int secondsLeft = 10;
 
         private VolumePoller(YamAppCore core) {
             this.core = core;
@@ -172,13 +177,21 @@ final class YamAppUi implements ActionListener {
         public void run() {
             try {
                 for (; ; ) {
-                    Thread.sleep(10000);
-                    setVolume(core.getVolume());
+                    Thread.sleep(1000);
+                    secondsLeft--;
+                    if (1 > secondsLeft) {
+                        setVolumeOnUi(core.getVolume());
+                        resetSecondsLeft();
+                    }
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
+        }
+
+        void resetSecondsLeft() {
+            secondsLeft = 10;
         }
     }
 }
