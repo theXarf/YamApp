@@ -3,10 +3,12 @@ package yamapp;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.plaf.synth.SynthSliderUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 final class YamAppUi implements ActionListener {
     private final YamAppCore core;
@@ -99,6 +101,18 @@ final class YamAppUi implements ActionListener {
 
     private JSlider createVolumeSlider(final JLabel volText, VolumePoller poller) {
         final JSlider slider = new JSlider(-600, 0, -400);
+        final BigDecimal sliderMin = BigDecimal.valueOf(slider.getMinimum());
+        slider.setUI(new SynthSliderUI(slider) {
+            @Override
+            protected void scrollDueToClickInTrack(int dir) {
+                final BigDecimal sliderTrackWidth = BigDecimal.valueOf(slider.getBounds().getWidth());
+                final double x = slider.getMousePosition().getX();
+                final BigDecimal fraction = BigDecimal.valueOf(x).divide(sliderTrackWidth, 4, RoundingMode.DOWN);
+                final BigDecimal newVal = sliderMin.subtract(sliderMin.multiply(fraction));
+                final int value = newVal.setScale(-1, RoundingMode.DOWN).intValue();
+                slider.setValue(value);
+            }
+        });
         final UIDefaults sliderDefaults = new UIDefaults();
         sliderDefaults.put("Slider.thumbWidth", 20);
         sliderDefaults.put("Slider.thumbHeight", 20);
