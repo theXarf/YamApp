@@ -11,6 +11,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 final class YamAppUi implements ActionListener {
+    public static final int HEIGHT = 500;
+    public static final int WIDTH = 1000;
+    public static final int TASKBAR_HEIGHT = 100;
     private final YamAppCore core;
     private JLabel readout;
     private JSlider volSlider;
@@ -28,7 +31,9 @@ final class YamAppUi implements ActionListener {
         final GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] devices = env.getScreenDevices();
         if (screen > -1 && screen < devices.length) {
-            frame.setLocation(devices[screen].getDefaultConfiguration().getBounds().x, 3200);
+            double maxY = devices[screen].getDefaultConfiguration().getBounds().getMaxY();
+            final Double yDouble = maxY - HEIGHT - TASKBAR_HEIGHT;
+            frame.setLocation(devices[screen].getDefaultConfiguration().getBounds().x, yDouble.intValue());
         } else if (devices.length > 0) {
             frame.setLocation(devices[0].getDefaultConfiguration().getBounds().x, frame.getY());
         } else {
@@ -68,7 +73,7 @@ final class YamAppUi implements ActionListener {
         yamFrame.getContentPane().add(panel, BorderLayout.CENTER);
         yamFrame.pack();
         yamFrame.setVisible(true);
-        yamFrame.setSize(800, 400);
+        yamFrame.setSize(WIDTH, HEIGHT);
         yamFrame.setResizable(false);
 
         showOnScreen(1, yamFrame);
@@ -95,7 +100,7 @@ final class YamAppUi implements ActionListener {
         final JLabel volText = new JLabel("", SwingConstants.CENTER);
         volText.setBackground(Color.darkGray);
         volText.setForeground(Color.RED);
-        volText.setFont(new Font("monospaced", Font.BOLD, 56));
+        volText.setFont(new Font("monospaced", Font.BOLD, 76));
         return volText;
     }
 
@@ -114,8 +119,8 @@ final class YamAppUi implements ActionListener {
             }
         });
         final UIDefaults sliderDefaults = new UIDefaults();
-        sliderDefaults.put("Slider.thumbWidth", 20);
-        sliderDefaults.put("Slider.thumbHeight", 20);
+        sliderDefaults.put("Slider.thumbWidth", 25);
+        sliderDefaults.put("Slider.thumbHeight", 25);
         sliderDefaults.put("Slider:SliderThumb.backgroundPainter", new Painter<JComponent>() {
             public void paint(Graphics2D g, JComponent c, int w, int h) {
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -149,7 +154,7 @@ final class YamAppUi implements ActionListener {
         final JButton button = new JButton("MUTE");
         button.setBackground(Color.BLACK);
         button.setForeground(Color.RED);
-        button.setFont(new Font("Helvetica", Font.BOLD, 40));
+        button.setFont(new Font("Helvetica", Font.BOLD, 50));
         button.setActionCommand("mute");
         button.addActionListener(this);
         return button;
