@@ -11,15 +11,15 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 final class YamAppUi implements ActionListener {
-    public static final int HEIGHT = 500;
-    public static final int WIDTH = 1000;
-    public static final int TASKBAR_HEIGHT = 100;
+    private static final int HEIGHT = 500;
+    private static final int WIDTH = 1000;
+    private static final int TASKBAR_HEIGHT = 100;
     private final YamAppCore core;
     private JLabel readout;
     private JSlider volSlider;
     private JFrame yamFrame;
 
-    public YamAppUi(final YamAppCore core) {
+    YamAppUi(final YamAppCore core) {
         this.core = core;
     }
 
@@ -27,7 +27,7 @@ final class YamAppUi implements ActionListener {
         return String.valueOf(BigDecimal.valueOf(vol).divide(BigDecimal.TEN, BigDecimal.ROUND_DOWN).setScale(1, BigDecimal.ROUND_DOWN));
     }
 
-    public static void showOnScreen(final int screen, final JFrame frame) {
+    private static void showOnScreen(final int screen, final JFrame frame) {
         final GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] devices = env.getScreenDevices();
         if (screen > -1 && screen < devices.length) {
@@ -41,7 +41,7 @@ final class YamAppUi implements ActionListener {
         }
     }
 
-    public void drawUi() {
+    void drawUi() {
         for (UIManager.LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels()) {
             if ("Nimbus".equals(laf.getName())) {
                 try {
@@ -59,7 +59,7 @@ final class YamAppUi implements ActionListener {
 
         final VolumePoller poller = new VolumePoller(core);
         readout = createVolumeReadout();
-        volSlider = createVolumeSlider(readout, poller);
+        volSlider = createVolumeSlider(poller);
 
         setVolumeOnUi(core.getVolume());
 
@@ -85,7 +85,7 @@ final class YamAppUi implements ActionListener {
     @Override
     public void actionPerformed(final ActionEvent e) {
         if (e.getActionCommand().equals("mute")) {
-            final boolean success = core.toggleMute();
+            core.toggleMute();
         }
     }
 
@@ -104,7 +104,7 @@ final class YamAppUi implements ActionListener {
         return volText;
     }
 
-    private JSlider createVolumeSlider(final JLabel volText, VolumePoller poller) {
+    private JSlider createVolumeSlider(final VolumePoller poller) {
         final JSlider slider = new JSlider(-600, 0, -400);
         final BigDecimal sliderMin = BigDecimal.valueOf(slider.getMinimum());
         slider.setUI(new SynthSliderUI(slider) {
@@ -121,32 +121,28 @@ final class YamAppUi implements ActionListener {
         final UIDefaults sliderDefaults = new UIDefaults();
         sliderDefaults.put("Slider.thumbWidth", 25);
         sliderDefaults.put("Slider.thumbHeight", 25);
-        sliderDefaults.put("Slider:SliderThumb.backgroundPainter", new Painter<JComponent>() {
-            public void paint(Graphics2D g, JComponent c, int w, int h) {
-                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g.setStroke(new BasicStroke(3f));
-                g.setColor(Color.RED);
-                g.fillOval(1, 1, w + 5, h + 5);
-                g.setColor(Color.WHITE);
-                g.drawOval(1, 1, w + 5, h + 5);
-            }
+        sliderDefaults.put("Slider:SliderThumb.backgroundPainter", (Painter<JComponent>) (g, c, w, h) -> {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setStroke(new BasicStroke(3f));
+            g.setColor(Color.RED);
+            g.fillOval(1, 1, w + 5, h + 5);
+            g.setColor(Color.WHITE);
+            g.drawOval(1, 1, w + 5, h + 5);
         });
-        sliderDefaults.put("Slider:SliderTrack.backgroundPainter", new Painter<JComponent>() {
-            public void paint(Graphics2D g, JComponent c, int w, int h) {
-                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g.setStroke(new BasicStroke(2f));
-                g.setColor(Color.GRAY);
-                g.fillRoundRect(0, 6, w - 1, 8, 8, 8);
-                g.setColor(Color.WHITE);
-                g.drawRoundRect(0, 6, w - 1, 8, 8, 8);
-            }
+        sliderDefaults.put("Slider:SliderTrack.backgroundPainter", (Painter<JComponent>) (g, c, w, h) -> {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setStroke(new BasicStroke(2f));
+            g.setColor(Color.GRAY);
+            g.fillRoundRect(0, 6, w - 1, 8, 8, 8);
+            g.setColor(Color.WHITE);
+            g.drawRoundRect(0, 6, w - 1, 8, 8, 8);
         });
 
         slider.setMajorTickSpacing(10);
         slider.setSnapToTicks(true);
         slider.putClientProperty("Nimbus.Overrides", sliderDefaults);
         slider.putClientProperty("Nimbus.Overrides.InheritDefaults", false);
-        slider.addChangeListener(new VolumeListener(slider, volText, core, poller));
+        slider.addChangeListener(new VolumeListener(slider, core, poller));
         return slider;
     }
 
@@ -162,13 +158,11 @@ final class YamAppUi implements ActionListener {
 
     private class VolumeListener implements ChangeListener {
         private final JSlider slider;
-        private final JLabel volText;
         private final YamAppCore core;
         private final VolumePoller poller;
 
-        VolumeListener(final JSlider slider, JLabel volText, final YamAppCore core, final VolumePoller poller) {
+        VolumeListener(final JSlider slider, final YamAppCore core, final VolumePoller poller) {
             this.slider = slider;
-            this.volText = volText;
             this.core = core;
             this.poller = poller;
         }
@@ -178,7 +172,7 @@ final class YamAppUi implements ActionListener {
             poller.resetSecondsLeft();
             if (!slider.getValueIsAdjusting()) {
                 final int vol = slider.getValue();
-                final boolean success = core.setVolumeTo(vol);
+                core.setVolumeTo(vol);
                 setVolumeOnUi(vol);
             }
         }
