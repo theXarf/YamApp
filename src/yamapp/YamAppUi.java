@@ -79,7 +79,7 @@ final class YamAppUi implements ActionListener {
         yamFrame.setSize(WIDTH, HEIGHT);
         yamFrame.setResizable(false);
 
-        showOnScreen(2, yamFrame);
+        showOnScreen(1, yamFrame);
 
         final Thread pollThread = new Thread(poller);
         pollThread.start();
