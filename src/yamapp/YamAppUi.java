@@ -7,6 +7,8 @@ import javax.swing.plaf.synth.SynthSliderUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -53,6 +55,7 @@ final class YamAppUi implements ActionListener {
         }
 
         yamFrame = new JFrame("Amp Volume");
+        yamFrame.addMouseListener(new RelocationListener(yamFrame));
         yamFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         yamFrame.getContentPane().setLayout(new BorderLayout());
         yamFrame.setUndecorated(true);
@@ -76,7 +79,7 @@ final class YamAppUi implements ActionListener {
         yamFrame.setSize(WIDTH, HEIGHT);
         yamFrame.setResizable(false);
 
-        showOnScreen(1, yamFrame);
+        showOnScreen(2, yamFrame);
 
         final Thread pollThread = new Thread(poller);
         pollThread.start();
@@ -205,6 +208,38 @@ final class YamAppUi implements ActionListener {
 
         void resetSecondsLeft() {
             secondsLeft = 10;
+        }
+    }
+
+    private class RelocationListener implements MouseListener {
+        private JFrame yamFrame;
+
+        public RelocationListener(final JFrame yamFrame) {
+            this.yamFrame = yamFrame;
+        }
+
+        @Override
+        public void mouseClicked(final MouseEvent e) {
+            int clickCount = e.getClickCount();
+            if (clickCount == 2) {
+                showOnScreen(1, yamFrame);
+            }
+        }
+
+        @Override
+        public void mousePressed(final MouseEvent e) {
+        }
+
+        @Override
+        public void mouseReleased(final MouseEvent e) {
+        }
+
+        @Override
+        public void mouseEntered(final MouseEvent e) {
+        }
+
+        @Override
+        public void mouseExited(final MouseEvent e) {
         }
     }
 }
