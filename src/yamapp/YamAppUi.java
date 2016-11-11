@@ -213,6 +213,7 @@ final class YamAppUi implements ActionListener {
 
     private class RelocationListener implements MouseListener {
         private JFrame yamFrame;
+        private int screen = 1;
 
         public RelocationListener(final JFrame yamFrame) {
             this.yamFrame = yamFrame;
@@ -222,7 +223,12 @@ final class YamAppUi implements ActionListener {
         public void mouseClicked(final MouseEvent e) {
             int clickCount = e.getClickCount();
             if (clickCount == 2) {
-                showOnScreen(1, yamFrame);
+                showOnScreen(screen, yamFrame);
+                if (screen == 1) {
+                    screen = 0;
+                } else {
+                    screen = 1;
+                }
             }
         }
 
