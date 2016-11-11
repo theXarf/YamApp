@@ -207,7 +207,7 @@ final class YamAppUi implements ActionListener {
         }
 
         void resetSecondsLeft() {
-            secondsLeft = 10;
+            secondsLeft = 5;
         }
     }
 
