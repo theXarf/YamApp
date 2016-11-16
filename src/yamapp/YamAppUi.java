@@ -13,8 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 final class YamAppUi implements ActionListener {
-    private static final int HEIGHT = 500;
-    private static final int WIDTH = 1000;
+    private static final float RATIO = 0.15f;
     private static final int TASKBAR_HEIGHT = 100;
     private final YamAppCore core;
     private JLabel readout;
@@ -32,15 +31,24 @@ final class YamAppUi implements ActionListener {
     private static void showOnScreen(final int screen, final JFrame frame) {
         final GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] devices = env.getScreenDevices();
+        frame.setVisible(true);
+
         if (screen > -1 && screen < devices.length) {
-            double maxY = devices[screen].getDefaultConfiguration().getBounds().getMaxY();
-            final Double yDouble = maxY - HEIGHT - TASKBAR_HEIGHT;
-            frame.setLocation(devices[screen].getDefaultConfiguration().getBounds().x, yDouble.intValue());
+            final GraphicsConfiguration graphicsConfiguration = devices[screen].getDefaultConfiguration();
+            double maxY = graphicsConfiguration.getBounds().getMaxY();
+            double maxX = graphicsConfiguration.getBounds().getMaxX();
+            final int width = new Double(maxX * RATIO).intValue();
+            final int height = new Double(maxY * RATIO).intValue();
+            final Double yDouble = maxY - height - TASKBAR_HEIGHT;
+            frame.setSize(width, height);
+            frame.setLocation(graphicsConfiguration.getBounds().x, yDouble.intValue());
         } else if (devices.length > 0) {
             frame.setLocation(devices[0].getDefaultConfiguration().getBounds().x, frame.getY());
         } else {
             throw new RuntimeException("No Screens Found");
         }
+
+        frame.setResizable(false);
     }
 
     void drawUi() {
@@ -75,9 +83,6 @@ final class YamAppUi implements ActionListener {
 
         yamFrame.getContentPane().add(panel, BorderLayout.CENTER);
         yamFrame.pack();
-        yamFrame.setVisible(true);
-        yamFrame.setSize(WIDTH, HEIGHT);
-        yamFrame.setResizable(false);
 
         showOnScreen(1, yamFrame);
 
