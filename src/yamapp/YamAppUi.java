@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 final class YamAppUi implements ActionListener {
-    private static final float RATIO = 0.15f;
-    private static final int TASKBAR_HEIGHT = 100;
+    private static final float FRAME_RATIO = 0.204f;
+    private static final float TASKBAR_RATIO = 0.037f;
     private final YamAppCore core;
     private JLabel readout;
     private JSlider volSlider;
@@ -35,11 +35,13 @@ final class YamAppUi implements ActionListener {
 
         if (screen > -1 && screen < devices.length) {
             final GraphicsConfiguration graphicsConfiguration = devices[screen].getDefaultConfiguration();
+            double screenHeight = graphicsConfiguration.getBounds().getHeight();
+            double screenWidth = graphicsConfiguration.getBounds().getWidth();
             double maxY = graphicsConfiguration.getBounds().getMaxY();
-            double maxX = graphicsConfiguration.getBounds().getMaxX();
-            final int width = new Double(maxX * RATIO).intValue();
-            final int height = new Double(maxY * RATIO).intValue();
-            final Double yDouble = maxY - height - TASKBAR_HEIGHT;
+            final int width = new Double(screenWidth * FRAME_RATIO).intValue();
+            final int height = new Double(screenHeight * FRAME_RATIO).intValue();
+            final int taskbarHeight = new Double(screenHeight * TASKBAR_RATIO).intValue();
+            final Double yDouble = maxY - height - taskbarHeight;
             frame.setSize(width, height);
             frame.setLocation(graphicsConfiguration.getBounds().x, yDouble.intValue());
         } else if (devices.length > 0) {
