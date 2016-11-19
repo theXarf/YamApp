@@ -44,6 +44,7 @@ final class YamAppUi implements ActionListener {
             final Double yDouble = maxY - height - taskbarHeight;
             frame.setSize(width, height);
             frame.setLocation(graphicsConfiguration.getBounds().x, yDouble.intValue());
+            frame.repaint();
         } else if (devices.length > 0) {
             frame.setLocation(devices[0].getDefaultConfiguration().getBounds().x, frame.getY());
         } else {
